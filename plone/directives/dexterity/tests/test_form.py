@@ -40,7 +40,7 @@ class TestSchemaDirectives(MockTestCase):
             
         self.replay()
         
-        self.assertEquals(None, IDummy.queryTaggedValue(u'dexterity.form'))
+        self.assertEquals(None, IDummy.queryTaggedValue(FORMDATA_KEY))
         grok_component('IDummy', IDummy)
         self.assertEquals({u'widgets': [('foo', 'some.dummy.Widget'), ('baz', 'other.Widget')],
                            u'omitted': [('foo', 'true'), ('bar', 'true')],
@@ -60,7 +60,7 @@ class TestSchemaDirectives(MockTestCase):
             
         self.replay()
         
-        self.assertEquals(None, IDummy.queryTaggedValue(u'dexterity.form'))
+        self.assertEquals(None, IDummy.queryTaggedValue(FORMDATA_KEY))
         grok_component('IDummy', IDummy)
         self.assertEquals({u'widgets': [('foo', 'plone.directives.dexterity.tests.test_form.DummyWidget')]}, 
                             IDummy.queryTaggedValue(FORMDATA_KEY))
@@ -74,12 +74,12 @@ class TestSchemaDirectives(MockTestCase):
             bar = zope.schema.TextLine(title=u"Bar")
             baz = zope.schema.TextLine(title=u"Baz")
             
-        IDummy.setTaggedValue(u'dexterity.form', {u'widgets': [('alpha', 'some.Widget')]})
+        IDummy.setTaggedValue(FORMDATA_KEY, {u'widgets': [('alpha', 'some.Widget')]})
             
         self.replay()
         
         self.assertEquals({u'widgets': [('alpha', 'some.Widget')]}, 
-                            IDummy.queryTaggedValue(u'dexterity.form'))
+                            IDummy.queryTaggedValue(FORMDATA_KEY))
         grok_component('IDummy', IDummy)
         self.assertEquals({u'widgets': [('alpha', 'some.Widget'), ('foo', 'some.dummy.Widget')]}, 
                             IDummy.queryTaggedValue(FORMDATA_KEY))
@@ -104,7 +104,7 @@ class TestSchemaDirectives(MockTestCase):
             
         self.replay()
         
-        self.assertEquals(None, IDummy.queryTaggedValue(u'dexterity.form'))
+        self.assertEquals(None, IDummy.queryTaggedValue(FORMDATA_KEY))
         grok_component('IDummy', IDummy)
         self.assertEquals({u'widgets': [('foo', 'some.dummy.Widget'), ('baz', 'other.Widget')],
                            u'omitted': [('foo', 'true'), ('bar', 'true')],
