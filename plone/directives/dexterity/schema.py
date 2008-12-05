@@ -7,9 +7,9 @@ from martian.error import GrokImportError
 from zope.interface import Interface
 from zope.interface.interface import TAGGED_DATA
 
-from plone.supermodel.model import FILENAME_KEY
-from plone.supermodel.model import SCHEMA_NAME_KEY
-from plone.supermodel.model import FIELDSETS_KEY
+from plone.supermodel.interfaces import FILENAME_KEY
+from plone.supermodel.interfaces import SCHEMA_NAME_KEY
+from plone.supermodel.interfaces import FIELDSETS_KEY
 
 from plone.supermodel.model import Fieldset
 

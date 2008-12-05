@@ -6,7 +6,7 @@ from zope.interface import Interface
 import zope.component.testing
 from zope.testing import doctest
 
-from plone.supermodel.model import FILENAME_KEY, SCHEMA_NAME_KEY
+from plone.supermodel.interfaces import FILENAME_KEY, SCHEMA_NAME_KEY
 
 from plone.directives.dexterity.schema import Schema, model
 

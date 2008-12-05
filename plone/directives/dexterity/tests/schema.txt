@@ -122,7 +122,7 @@ schema:
 It also contains the filename that the schema was loaded from and the schema 
 name as a tagged values in the base interface.
 
-    >>> from plone.supermodel.model import FILENAME_KEY, SCHEMA_NAME_KEY
+    >>> from plone.supermodel.interfaces import FILENAME_KEY, SCHEMA_NAME_KEY
     >>> ITestContent.getTaggedValue(FILENAME_KEY) # doctest: +ELLIPSIS
     '.../schema.xml'
     >>> ITestContent.getTaggedValue(SCHEMA_NAME_KEY)
@@ -190,7 +190,7 @@ fieldsets. The same tagged value can be populated using a directive:
     >>> grok_component("IGrouped", IGrouped)
     True
     
-    >>> from plone.supermodel.model import FIELDSETS_KEY
+    >>> from plone.supermodel.interfaces import FIELDSETS_KEY
     >>> IGrouped.getTaggedValue(FIELDSETS_KEY)
     [<Fieldset 'default' of title, description>, <Fieldset 'metadata' of date>]
     
