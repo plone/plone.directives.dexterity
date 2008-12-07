@@ -30,6 +30,7 @@ setup(name='plone.directives.dexterity',
           'setuptools',
           'five.grok',
           'plone.dexterity',
+          'plone.directives.form',
           'zope.deferredimport',
           # -*- Extra requirements: -*-
       ],

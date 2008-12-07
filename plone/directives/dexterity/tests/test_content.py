@@ -14,7 +14,7 @@ from zope.app.container.interfaces import IAdding
 
 from grokcore.component.testing import grok, grok_component
 
-from plone.directives.dexterity.schema import Schema
+from plone.directives import form
 from plone.directives.dexterity.content import add_permission
 from plone.dexterity.content import Item
 
@@ -53,7 +53,7 @@ class TestContentDirectives(MockTestCase):
     
     def test_schema_interface_initialisation_does_not_overwrite(self):
         
-        class IContent(Schema):
+        class IContent(form.Schema):
             
             foo = zope.schema.TextLine(title=u"Foo", default=u"bar")
         

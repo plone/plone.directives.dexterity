@@ -6,7 +6,6 @@
     <!-- Load ZCML from Grok and grok our grokkers -->
     <include package="five.grok" file="meta.zcml" />
     
-    <grok:grok package=".schema" />
     <grok:grok package=".form" />
     <grok:grok package=".content" />
 
