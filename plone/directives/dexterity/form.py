@@ -94,7 +94,17 @@ class order_before(martian.Directive):
     scope = martian.CLASS
     store = FORM_METADATA
     
-    key = u"moves"
+    key = u"before"
+    
+    def factory(self, **kw):
+        return kw.items()
+
+class order_after(martian.Directive):
+    
+    scope = martian.CLASS
+    store = FORM_METADATA
+    
+    key = u"after"
     
     def factory(self, **kw):
         return kw.items()
@@ -108,6 +118,7 @@ class FormSchemaGrokker(martian.InstanceGrokker):
     martian.directive(mode)
     martian.directive(widget)
     martian.directive(order_before)
+    martian.directive(order_after)
     
     def execute(self, interface, config, **kw):
         
@@ -186,4 +197,4 @@ class EditFormGrokker(martian.ClassGrokker):
 
         return True
 
-__all__ = ('AddForm', 'EditForm',)
+__all__ = ('AddForm', 'EditForm', 'omitted', 'mode', 'widget', 'order_before', 'order_after')

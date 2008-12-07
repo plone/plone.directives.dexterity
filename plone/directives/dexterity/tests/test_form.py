@@ -32,11 +32,13 @@ class TestSchemaDirectives(MockTestCase):
             form.widget(foo='some.dummy.Widget', baz='other.Widget')
             form.mode(bar='hidden')
             form.order_before(baz='title')
+            form.order_after(qux='title')
             
             
             foo = zope.schema.TextLine(title=u"Foo")
             bar = zope.schema.TextLine(title=u"Bar")
             baz = zope.schema.TextLine(title=u"Baz")
+            qux = zope.schema.TextLine(title=u"Qux")
             
         self.replay()
         
@@ -44,7 +46,8 @@ class TestSchemaDirectives(MockTestCase):
         grok_component('IDummy', IDummy)
         self.assertEquals({u'widgets': [('foo', 'some.dummy.Widget'), ('baz', 'other.Widget')],
                            u'omitted': [('foo', 'true'), ('bar', 'true')],
-                           u'moves': [('baz', 'title')],
+                           u'before': [('baz', 'title')],
+                           u'after': [('qux', 'title')],
                            u'modes': [('bar', 'hidden')]},
                             IDummy.queryTaggedValue(FORMDATA_KEY))
         
@@ -96,11 +99,14 @@ class TestSchemaDirectives(MockTestCase):
             form.mode(foo='display')
             form.order_before(baz='title')
             form.order_before(foo='body')
+            form.order_after(baz='qux')
+            form.order_after(qux='bar')
             
             
             foo = zope.schema.TextLine(title=u"Foo")
             bar = zope.schema.TextLine(title=u"Bar")
             baz = zope.schema.TextLine(title=u"Baz")
+            qux = zope.schema.TextLine(title=u"Qux")
             
         self.replay()
         
@@ -108,7 +114,8 @@ class TestSchemaDirectives(MockTestCase):
         grok_component('IDummy', IDummy)
         self.assertEquals({u'widgets': [('foo', 'some.dummy.Widget'), ('baz', 'other.Widget')],
                            u'omitted': [('foo', 'true'), ('bar', 'true')],
-                           u'moves': [('baz', 'title'), ('foo', 'body')],
+                           u'before': [('baz', 'title'), ('foo', 'body')],
+                           u'after': [('baz', 'qux'), ('qux', 'bar')],
                            u'modes': [('bar', 'hidden'), ('foo', 'display')]}, 
                             IDummy.queryTaggedValue(FORMDATA_KEY))
 

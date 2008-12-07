@@ -23,15 +23,16 @@ zope.deferredimport.defineFrom('plone.directives.dexterity.schema',
 # ...     dexterity.fieldset('details', label=u"Details", fields=('alpha', 'beta',))
 # ...     dexterity.mode(secret_field='hidden',)
 # ...     dexterity.order_before(field1='field2')
+# ...     dexterity.order_after(field2='field3')
 # 
 # Here, the 'body' field will use a WYSIWYG widget; 'debug_field' and
 # 'extra_info' will be omitted from forms; the fields 'alpha' and 'beta' will
 # go into a separate fieldset 'details'; the 'secret_field' field will be
-# rendered as a hidden field; and 'field1' will be guaranteed to go before 
-# field2
+# rendered as a hidden field; and 'field1' will be moved to go before 
+# 'field2' and 'field2' will be moved to go after 'field3'.
 
 zope.deferredimport.defineFrom('plone.directives.dexterity.form',
-    'omitted', 'mode', 'widget', 'order_before',
+    'omitted', 'mode', 'widget', 'order_before', 'order_after',
 )
 
 # Base classes for custom content classes and directives for specifying
