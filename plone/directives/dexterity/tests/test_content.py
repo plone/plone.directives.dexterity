@@ -2,19 +2,13 @@ import unittest
 import mocker
 from plone.mocktestcase import MockTestCase
 
-from zope.interface import implements, Interface
-import zope.schema
-
 from zope.configuration.interfaces import IConfigurationContext
 
 from zope.component.interfaces import IFactory
 
-from zope.publisher.interfaces.browser import IBrowserRequest
-from zope.app.container.interfaces import IAdding
-
+import five.grok
 from grokcore.component.testing import grok, grok_component
 
-from plone.directives import form
 from plone.directives.dexterity.content import add_permission
 from plone.dexterity.content import Item
 
@@ -36,6 +30,9 @@ class TestContentDirectives(MockTestCase):
         self.expect(registerClass_mock(self.match_provides(IConfigurationContext), 
                                         Content, "ContentMT", u"mock.AddPermission"))
     
+        initializeClass_mock = self.mocker.replace('Products.Five.security.initializeClass')
+        self.expect(initializeClass_mock(Content))
+    
         self.replay()
         
         grok_component('Content', Content)
@@ -47,76 +44,54 @@ class TestContentDirectives(MockTestCase):
         registerClass_mock = self.mocker.replace('Products.Five.fiveconfigure.registerClass')
         self.expect(registerClass_mock(mocker.ANY, Content, mocker.ANY, mocker.ANY)).count(0)
     
+        initializeClass_mock = self.mocker.replace('Products.Five.security.initializeClass')
+        self.expect(initializeClass_mock(Content))
+    
         self.replay()
         
         grok_component('Content', Content)
     
-    def test_schema_interface_initialisation_does_not_overwrite(self):
-        
-        class IContent(form.Schema):
-            
-            foo = zope.schema.TextLine(title=u"Foo", default=u"bar")
+    def test_class_security_initialised(self):
         
         class Content(Item):
-            implements(IContent)
+            pass
         
-            foo = u"baz"
-        
-        self.replay()
-
-        grok_component('Content', Content)
-        self.assertEquals(u"baz", Content.foo)
+        initializeClass_mock = self.mocker.replace('Products.Five.security.initializeClass')
+        self.expect(initializeClass_mock(Content))
     
-    def test_non_schema_interfaces_not_initialised(self):
-        
-        class IContent(Interface):
-            
-            foo = zope.schema.TextLine(title=u"Foo", default=u"bar")
-        
-        class Content(Item):
-            implements(IContent)
-        
         self.replay()
-
-        self.failIf(hasattr(Content, "foo"))
+        
         grok_component('Content', Content)
-        self.failIf(hasattr(Content, "foo"))
         
-    def test_security_initialised(self):
-        # TODO: Add tests here as part of security implementation
-        pass
         
-    def test_portal_type_registers_factory_and_addview(self):
+    def test_name_registers_factory(self):
         
         class Content(Item):
-            portal_type = 'my.type'
+            five.grok.name('my.type')
         
         provideUtility_mock = self.mocker.replace('zope.component.provideUtility')
         self.expect(provideUtility_mock(self.match_provides(IFactory), IFactory, 'my.type'))
 
+        initializeClass_mock = self.mocker.replace('Products.Five.security.initializeClass')
+        self.expect(initializeClass_mock(Content))
+        
         self.replay()
         
         grok_component('Content', Content)
     
-    def test_portal_type_does_not_overwrite_factory_and_addview(self):
+    def test_name_does_not_overwrite_factory(self):
         
         class Content(Item):
-            portal_type = 'my.type'
+            five.grok.name('my.type')
         
         factory_dummy = self.create_dummy()
         self.mock_utility(factory_dummy, IFactory, 'my.type')
         
-        addview_dummy = self.create_dummy()
-        self.mock_adapter(addview_dummy, Interface, (IAdding, IBrowserRequest), 'my.type')
-        
         provideUtility_mock = self.mocker.replace('zope.component.provideUtility')
         self.expect(provideUtility_mock(mocker.ANY, IFactory, 'my.type')).count(0)
     
-        provideAdapter_mock = self.mocker.replace('zope.component.provideAdapter')
-        self.expect(provideAdapter_mock(factory=mocker.ANY,
-                                        adapts=(IAdding, IBrowserRequest),
-                                        provides=mocker.ANY,
-                                        name='my.type')).count(0)
+        initializeClass_mock = self.mocker.replace('Products.Five.security.initializeClass')
+        self.expect(initializeClass_mock(Content))
     
         self.replay()
         

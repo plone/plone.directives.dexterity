@@ -1,7 +1,11 @@
+from inspect import ismethod
+
 import zope.interface
 import zope.component
 
 import zope.interface.interface
+
+from zope.component.zcml import handler
 
 import martian
 import grokcore.security
@@ -9,12 +13,21 @@ import grokcore.view
 
 from plone.z3cform import layout
 
+from plone.dexterity.interfaces import IDexterityFTI
 from plone.dexterity.browser import add, edit
 
+from zope.publisher.interfaces.browser import IBrowserPage
+from zope.publisher.interfaces.browser import IBrowserRequest
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
+
+from Globals import InitializeClass as initializeClass
+
 from Products.CMFCore.interfaces import IFolderish
 
 from Products.Five.browser.metaconfigure import page
+from Products.Five.metaclass import makeClass
+from Products.Five.security import protectClass, protectName
+from Products.Five.security import CheckerPrivateId
 
 TEMP_KEY = '__form_directive_values__'
 
@@ -39,23 +52,53 @@ class AddFormGrokker(martian.ClassGrokker):
     
     def execute(self, form, config, layer, name, permission):
         
-        if not getattr(form, 'portal_type', None):
+        if not name:
             return False
         
-        factory = layout.wrap_form(form)
-        
-        if not name:
-            name = "add-%s" % form.portal_type
-        
-        factory.__name__ = name
-        
-        page(config,
-             name=name,
-             permission=permission,
-             for_=IFolderish,
-             layer=layer,
-             class_=factory)
+        # Create a wrapper class that derives from the default add view
+        # but sets the correct form
 
+        cdict = {'__name__': name, 'form': form}
+        bases = (add.DefaultAddView,)
+        new_class = makeClass('%sWrapper' % form.__name__, bases, cdict)
+        
+        # Protect the class
+        config.action(
+            discriminator = ('five:protectClass', new_class),
+            callable = protectClass,
+            args = (new_class, permission)
+            )
+            
+        # Protect the __call__ attribute
+        config.action(
+            discriminator = ('five:protectName', new_class, '__call__'),
+            callable = protectName,
+            args = (new_class, '__call__', permission)
+            )
+            
+        # Make all other attributes private
+        for attr in dir(new_class):
+            if not attr.startswith('_') and attr != '__call__' and ismethod(getattr(new_class, attr)):
+                config.action(
+                    discriminator = ('five:protectName', new_class, attr),
+                    callable = protectName,
+                    args = (new_class, attr, CheckerPrivateId)
+                    )
+        
+        # Initialise the class
+        config.action(
+            discriminator = ('five:initialize:class', new_class),
+            callable = initializeClass,
+            args = (new_class,)
+            )
+        
+        config.action(
+            discriminator = ('dexterity:addView', IFolderish, name, IBrowserRequest, layer, IDexterityFTI),
+            callable = handler,
+            args = ('registerAdapter',
+                    new_class, (IFolderish, layer, IDexterityFTI), zope.interface.Interface, name, config.info),
+            )
+        
         return True
         
 class EditFormGrokker(martian.ClassGrokker):

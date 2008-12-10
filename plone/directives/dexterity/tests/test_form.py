@@ -2,18 +2,30 @@ import unittest
 import mocker
 from plone.mocktestcase import MockTestCase
 
-from zope.interface import Interface
-import zope.schema
+from zope.interface import Interface, alsoProvides
+from zope.component import getMultiAdapter
 
 from grokcore.component.testing import grok, grok_component
 import five.grok
 
 from plone.directives.dexterity import form
 
+from plone.dexterity.fti import DexterityFTI
+from plone.dexterity.browser import add
+
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 from Products.CMFCore.interfaces import IFolderish
 
-from plone.autoform.interfaces import FORMDATA_KEY
+class TestContext(object):
+    five.grok.implements(IFolderish)
+
+class TestRequest(object):
+
+    def __init__(self, layer=IDefaultBrowserLayer):
+        alsoProvides(self, layer)
+
+    def __setitem__(self, name, value):
+        pass
 
 class TestFormDirectives(MockTestCase):
 
@@ -21,7 +33,7 @@ class TestFormDirectives(MockTestCase):
         super(TestFormDirectives, self).setUp()
         grok('plone.directives.dexterity.form')
         
-    def test_addform_grokker_bails_without_portal_type(self):
+    def test_addform_grokker_bails_without_factory(self):
         
         class AddForm(form.AddForm):
             pass
@@ -30,55 +42,62 @@ class TestFormDirectives(MockTestCase):
         
         self.assertEquals(False, grok_component('AddForm', AddForm))
 
-    def test_addform_registers_page_with_portal_type(self):
+    def test_addform_registered_with_factory(self):
         
         class AddForm(form.AddForm):
-            portal_type = 'my.type'
+            five.grok.name('my.type')
         
-        wrapped = self.create_dummy()
+        def match_addview():
+            return mocker.MATCH(lambda x: issubclass(x, add.DefaultAddView))
         
-        wrap_form_mock = self.mocker.replace('plone.z3cform.layout.wrap_form')
-        self.expect(wrap_form_mock(AddForm)).result(wrapped)
+        protectClass_mock = self.mocker.replace('Products.Five.security.protectClass')
+        self.expect(protectClass_mock(match_addview(), "cmf.AddPortalContent"))
         
-        page_mock = self.mocker.replace('Products.Five.browser.metaconfigure.page')
-        self.expect(page_mock(mocker.ANY, 
-                              name='add-my.type',
-                              permission='cmf.AddPortalContent',
-                              for_=IFolderish,
-                              layer=IDefaultBrowserLayer,
-                              class_=wrapped))
+        protectName_mock = self.mocker.replace('Products.Five.security.protectName')
+        self.expect(protectName_mock(match_addview(), '__call__', "cmf.AddPortalContent"))
+        
+        self.expect(protectName_mock(match_addview(), self.match_type(basestring), 'zope2.Private')).count(1,None)
         
         self.replay()
         
         self.assertEquals(True, grok_component('AddForm', AddForm))
-
-    def test_addform_registers_page_with_custom_name_and_layer(self):
         
-        class ILayer(IDefaultBrowserLayer):
+        # Find the adapter that was registered
+        
+        view = getMultiAdapter((TestContext(), TestRequest(), DexterityFTI(u"my.type")), name=u"my.type")
+        self.failUnless(isinstance(view, add.DefaultAddView))
+        self.assertEquals(AddForm, view.form)
+
+    def test_addform_registered_with_factory_layer_and_permission(self):
+        
+        class ITestLayer(Interface):
             pass
         
         class AddForm(form.AddForm):
-            portal_type = 'my.type'
-            five.grok.name('add-foo')
-            five.grok.layer(ILayer)
+            five.grok.name('my.type')
+            five.grok.layer(ITestLayer)
             five.grok.require('my.permission')
         
-        wrapped = self.create_dummy()
+        def match_addview():
+            return mocker.MATCH(lambda x: issubclass(x, add.DefaultAddView))
         
-        wrap_form_mock = self.mocker.replace('plone.z3cform.layout.wrap_form')
-        self.expect(wrap_form_mock(AddForm)).result(wrapped)
+        protectClass_mock = self.mocker.replace('Products.Five.security.protectClass')
+        self.expect(protectClass_mock(match_addview(), "my.permission"))
         
-        page_mock = self.mocker.replace('Products.Five.browser.metaconfigure.page')
-        self.expect(page_mock(mocker.ANY, 
-                              name='add-foo',
-                              permission='my.permission',
-                              for_=IFolderish,
-                              layer=ILayer,
-                              class_=wrapped))
+        protectName_mock = self.mocker.replace('Products.Five.security.protectName')
+        self.expect(protectName_mock(match_addview(), '__call__', "my.permission"))
+        
+        self.expect(protectName_mock(match_addview(), self.match_type(basestring), 'zope2.Private')).count(1,None)
         
         self.replay()
         
         self.assertEquals(True, grok_component('AddForm', AddForm))
+        
+        # Find the adapter that was registered
+        
+        view = getMultiAdapter((TestContext(), TestRequest(ITestLayer), DexterityFTI(u"my.type")), name=u"my.type")
+        self.failUnless(isinstance(view, add.DefaultAddView))
+        self.assertEquals(AddForm, view.form)
 
     def test_edit_form_bails_without_context(self):
         

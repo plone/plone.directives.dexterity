@@ -1,4 +1,5 @@
 import martian
+import grokcore.component
 
 from zope.component import queryUtility
 from zope.component import provideUtility
@@ -8,6 +9,7 @@ from zope.component.factory import Factory
 
 from plone.dexterity.content import DexterityContent
 
+from Products.Five.security import initializeClass
 from Products.Five.fiveconfigure import registerClass
 
 class add_permission(martian.Directive):
@@ -24,33 +26,45 @@ class add_permission(martian.Directive):
 class ContentGrokker(martian.ClassGrokker):
     martian.component(DexterityContent)
 
-    martian.directive(add_permission)
+    martian.directive(add_permission, default=None)
+    martian.directive(grokcore.component.name, default=None)
     
-    def execute(self, class_, config, add_permission, **kw):
+    def execute(self, class_, config, add_permission, name, **kw):
         
-        # 1. Register class if a meta type was specified. Most types
-        # will probably not need this.
+        # Register class if a meta type was specified. 
+        # (most types will probably not need this.)
         
-        meta_type = getattr(class_, 'meta_type', None)
-        if add_permission is not None:
+        if add_permission:
+            meta_type = getattr(class_, 'meta_type', None)
             registerClass(config, class_, meta_type, add_permission)
         
+        # Register a factory utility - defer this to the end of ZCML
+        # processing, since there may have been another utility manually
+        # registered
+        
+        if name:        
+            config.action(
+                    discriminator=('dexterity:registerFactory', class_, name),
+                    callable=register_factory,
+                    args=(class_, name),
+                    order=9999,
+                    )
+        
+        # Initialise class security
+        
         config.action(
-                discriminator=('plone.dexterity.content', class_,),
-                callable=register_content,
-                args=(class_,),
-                order=9999,
-                )
+            discriminator=('dexterity:registerClass', class_),
+            callable=initializeClass,
+            args=(class_,)
+            )
         
         return True
         
-def register_content(class_):
+def register_factory(class_, name):
 
     # Register factory if not already registered
-    portal_type = getattr(class_, 'portal_type', None)
-    if portal_type:
-        factory = queryUtility(IFactory, name=portal_type)
-        if factory is None:
-            provideUtility(Factory(class_), IFactory, portal_type)
+    factory = queryUtility(IFactory, name=name)
+    if factory is None:
+        provideUtility(Factory(class_), IFactory, name)
     
 __all__ = ('portal_type', 'meta_type', 'add_permission',)

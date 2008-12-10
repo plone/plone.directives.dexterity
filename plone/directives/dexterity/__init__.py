@@ -12,8 +12,8 @@ import zope.deferredimport
 # 
 # >>> class MyType(dexterity.Item):
 # ...     implements(IMyType)
+# ...     grok.name('my.type')
 # ...     dexterity.add_permission('My add permission')
-# ...     portal_type = 'my.type'
 # ...     meta_type = 'my.type'
 # 
 # In most cases, you can omit meta_type and add_permission(). These are only
