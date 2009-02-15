@@ -28,6 +28,19 @@ zope.deferredimport.defineFrom('plone.directives.dexterity.content',
     'add_permission',
 )
 
+# Field permission hints. These are actually defined in plone.directives.form,
+# but are imported here for convenience. Note that read_permission affects
+# more than just the form: it will also affect attribute access to a content
+# object using the default Dexterity base classes.
+# 
+# >>> class ISchema(form.Schema):
+# ...     dexterity.read_permission(field1='some.permission')
+# 
+# Note that the permission name is the id of an IPermission utility.
+zope.deferredimport.defineFrom('plone.directives.form',
+    'read_permission', 'write_permission',
+)
+
 # Base classes for custom add- and edit-forms, using z3c.form. For example:
 # 
 # >>> class AddForm(dexterity.AddForm):
