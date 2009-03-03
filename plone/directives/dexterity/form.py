@@ -11,12 +11,13 @@ import martian
 import grokcore.security
 import grokcore.view
 
+import five.grok
+
 from plone.z3cform import layout
 
 from plone.dexterity.interfaces import IDexterityFTI
-from plone.dexterity.browser import add, edit
+from plone.dexterity.browser import add, edit, view
 
-from zope.publisher.interfaces.browser import IBrowserPage
 from zope.publisher.interfaces.browser import IBrowserRequest
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 
@@ -42,6 +43,22 @@ class EditForm(edit.DefaultEditForm):
     """Base class for grokked edit forms
     """
     martian.baseclass()
+
+class DisplayForm(view.DefaultView, five.grok.View):
+    """Base class for grokked display forms
+    """
+    martian.baseclass()
+    
+    def __init__(self, context, request):
+        view.DefaultView.__init__(self, context, request)
+        five.grok.View.__init__(self, context, request)
+    
+    def render(self):
+        template = getattr(self, 'template', None)
+        if template is not None:
+            return self._render_template()
+        return zope.publisher.publish.mapply(self.render, (), self.request)
+    render.base_method = True
 
 class AddFormGrokker(martian.ClassGrokker):
     martian.component(AddForm)
@@ -128,4 +145,4 @@ class EditFormGrokker(martian.ClassGrokker):
 
         return True
 
-__all__ = ('AddForm', 'EditForm',)
+__all__ = ('AddForm', 'EditForm', 'DisplayForm', )

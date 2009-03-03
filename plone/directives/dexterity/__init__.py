@@ -41,28 +41,39 @@ zope.deferredimport.defineFrom('plone.directives.form',
     'read_permission', 'write_permission',
 )
 
-# Base classes for custom add- and edit-forms, using z3c.form. For example:
+# Base classes for custom add-, edit- and display-forms, using z3c.form.
+# For example:
 # 
 # >>> class AddForm(dexterity.AddForm):
-# ...     portal_type = 'my.type'
-# ...     fields = field.Fields(IMyType, omitReadOnly=True)
+# ...     grok.context(IFolderType)
 # 
 # >>> class EditForm(dexterity.EditForm):
 # ...     grok.context(IFSPage)
-# ...     fields = fields
 # 
-# See the z3c.form documentation for more details. Note that for add forms,
-# we have to specify the portal type to be added. The FTI should then be
-# configured (with GenericSetup) to use an add_view_expr like:
+# >>> class View(dexterity.DisplayForm):
+# ...     grok.context(IFSPage)
 # 
-#  string:${folder_url}/@@add-dexterity-content/my.type
+# Note that if you want a generic form, not directly tied to a specific type's
+# schema or behaviours, you should use the more general grokkers in 
+# plone.directives.form.
 # 
-# @@add-dexterity-content is a publish traverse view that will ensure the
-# add form is correctly rendered.
+# See the z3c.form documentation for more details.
+# 
+# Note that the add form created with this directive expect to be invoked
+# using the ++add++<type-name> traverser. The add_view_expr property in the
+# relevant type's FTI should be:
+# 
+#  string:${folder_url}/++add++factory.name
+# 
+# where factory.name is the name of the factory used to create an object of
+# the type that the add form is form.
 # 
 # For edit forms, the default name is 'edit', which can be overridden with
 # grok.name().
+# 
+# For display forms, you need to add a 'render' method, or use an associated
+# page template in the same way that you would use grok.View.
 
 zope.deferredimport.defineFrom('plone.directives.dexterity.form',
-    'AddForm', 'EditForm',
+    'AddForm', 'EditForm', 'DisplayForm',
 )
