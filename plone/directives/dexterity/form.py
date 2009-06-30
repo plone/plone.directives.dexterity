@@ -8,6 +8,8 @@ import zope.interface.interface
 from zope.component.zcml import handler
 
 import martian
+from martian.error import GrokError
+
 import grokcore.security
 import grokcore.view
 
@@ -70,7 +72,7 @@ class AddFormGrokker(martian.ClassGrokker):
     def execute(self, form, config, layer, name, permission):
         
         if not name:
-            return False
+            raise GrokError(u"No factory name specified for add form. Use grok.name('my.factory').", form)
         
         # Create a wrapper class that derives from the default add view
         # but sets the correct form

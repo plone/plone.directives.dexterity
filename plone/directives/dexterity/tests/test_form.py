@@ -2,8 +2,13 @@ import unittest
 import mocker
 from plone.mocktestcase import MockTestCase
 
+from martian.error import GrokError
+
 from zope.interface import Interface, alsoProvides
 from zope.component import getMultiAdapter
+
+from zope.security.interfaces import IPermission
+from zope.security.permission import Permission
 
 from grokcore.component.testing import grok, grok_component
 import five.grok
@@ -31,6 +36,7 @@ class TestFormDirectives(MockTestCase):
 
     def setUp(self):
         super(TestFormDirectives, self).setUp()
+        self.mock_utility(Permission(u'cmf.AddPortalContent', u"Add portal content"), IPermission, u'cmf.AddPortalContent')
         grok('plone.directives.dexterity.form')
         
     def test_addform_grokker_bails_without_factory(self):
@@ -40,7 +46,7 @@ class TestFormDirectives(MockTestCase):
         
         self.replay()
         
-        self.assertEquals(False, grok_component('AddForm', AddForm))
+        self.assertRaises(GrokError, grok_component, 'AddForm', AddForm)
 
     def test_addform_registered_with_factory(self):
         
@@ -101,19 +107,19 @@ class TestFormDirectives(MockTestCase):
 
     def test_edit_form_bails_without_context(self):
         
-        class EditForm(form.AddForm):
+        class EditForm(form.EditForm):
             pass
         
         self.replay()
         
-        self.assertEquals(False, grok_component('EditForm', EditForm))
+        self.assertRaises(GrokError, grok_component, 'EditForm', EditForm)
 
     def test_edit_form_bails_without_interface_as_context(self):
         
         class Foo(object):
             pass
         
-        class EditForm(form.AddForm):
+        class EditForm(form.EditForm):
             five.grok.context(Foo)
         
         self.replay()
