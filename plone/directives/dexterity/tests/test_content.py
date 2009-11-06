@@ -30,8 +30,8 @@ class TestContentDirectives(MockTestCase):
         self.expect(registerClass_mock(self.match_provides(IConfigurationContext), 
                                         Content, "ContentMT", u"mock.AddPermission"))
     
-        initializeClass_mock = self.mocker.replace('Products.Five.security.initializeClass')
-        self.expect(initializeClass_mock(Content))
+        InitializeClass_mock = self.mocker.replace('App.class_init.InitializeClass')
+        self.expect(InitializeClass_mock(Content))
     
         self.replay()
         
@@ -44,8 +44,8 @@ class TestContentDirectives(MockTestCase):
         registerClass_mock = self.mocker.replace('Products.Five.fiveconfigure.registerClass')
         self.expect(registerClass_mock(mocker.ANY, Content, mocker.ANY, mocker.ANY)).count(0)
     
-        initializeClass_mock = self.mocker.replace('Products.Five.security.initializeClass')
-        self.expect(initializeClass_mock(Content))
+        InitializeClass_mock = self.mocker.replace('App.class_init.InitializeClass')
+        self.expect(InitializeClass_mock(Content))
     
         self.replay()
         
@@ -56,8 +56,8 @@ class TestContentDirectives(MockTestCase):
         class Content(Item):
             pass
         
-        initializeClass_mock = self.mocker.replace('Products.Five.security.initializeClass')
-        self.expect(initializeClass_mock(Content))
+        InitializeClass_mock = self.mocker.replace('App.class_init.InitializeClass')
+        self.expect(InitializeClass_mock(Content))
     
         self.replay()
         
@@ -72,8 +72,8 @@ class TestContentDirectives(MockTestCase):
         provideUtility_mock = self.mocker.replace('zope.component.provideUtility')
         self.expect(provideUtility_mock(self.match_provides(IFactory), IFactory, 'my.type'))
 
-        initializeClass_mock = self.mocker.replace('Products.Five.security.initializeClass')
-        self.expect(initializeClass_mock(Content))
+        InitializeClass_mock = self.mocker.replace('App.class_init.InitializeClass')
+        self.expect(InitializeClass_mock(Content))
         
         self.replay()
         
@@ -90,8 +90,8 @@ class TestContentDirectives(MockTestCase):
         provideUtility_mock = self.mocker.replace('zope.component.provideUtility')
         self.expect(provideUtility_mock(mocker.ANY, IFactory, 'my.type')).count(0)
     
-        initializeClass_mock = self.mocker.replace('Products.Five.security.initializeClass')
-        self.expect(initializeClass_mock(Content))
+        InitializeClass_mock = self.mocker.replace('App.class_init.InitializeClass')
+        self.expect(InitializeClass_mock(Content))
     
         self.replay()
         

@@ -23,7 +23,7 @@ from plone.dexterity.browser import add, edit, view
 from zope.publisher.interfaces.browser import IBrowserRequest
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 
-from Globals import InitializeClass as initializeClass
+from App.class_init import InitializeClass
 
 from Products.CMFCore.interfaces import IFolderish
 
@@ -107,7 +107,7 @@ class AddFormGrokker(martian.ClassGrokker):
         # Initialise the class
         config.action(
             discriminator = ('five:initialize:class', new_class),
-            callable = initializeClass,
+            callable = InitializeClass,
             args = (new_class,)
             )
         

@@ -9,7 +9,7 @@ from zope.component.factory import Factory
 
 from plone.dexterity.content import DexterityContent
 
-from Products.Five.security import initializeClass
+from App.class_init import InitializeClass
 from Products.Five.fiveconfigure import registerClass
 
 class add_permission(martian.Directive):
@@ -54,7 +54,7 @@ class ContentGrokker(martian.ClassGrokker):
         
         config.action(
             discriminator=('dexterity:registerClass', class_),
-            callable=initializeClass,
+            callable=InitializeClass,
             args=(class_,)
             )
         
