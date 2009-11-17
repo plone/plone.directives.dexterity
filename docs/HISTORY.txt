@@ -1,13 +1,13 @@
 Changelog
 =========
 
-1.0b2 - 
--------------------
+1.0a2 - 2009-11-17
+------------------
 
 * Fix deprecation warnings on Zope 2.12
   [optilude]
 
-1.0b1 - 2009-07-25
+1.0a1 - 2009-07-25
 ------------------
 
 * Initial release
