@@ -20,6 +20,7 @@ For example::
     from plone.directives import dexterity
     from plone.directives import form
     from five import grok
+    from zope import schema
 
     class IPage(form.Schema):
     
@@ -69,6 +70,7 @@ AddForm, EditForm or DisplayForm base classes. For example::
     from plone.directives import dexterity
     from plone.directives import form
     from five import grok
+    from zope import schema
 
     class IPage(form.Schema):
     
