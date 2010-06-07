@@ -98,6 +98,6 @@ AddForm, EditForm or DisplayForm base classes. For example::
         """
         grok.context(IPage)
         
-        def updateWidget(self):
+        def updateWidgets(self):
             super(Edit, self).updateWidgets()
             self.widgets['title'].mode = 'hidden'
