@@ -101,3 +101,16 @@ AddForm, EditForm or DisplayForm base classes. For example::
         def updateWidgets(self):
             super(Edit, self).updateWidgets()
             self.widgets['title'].mode = 'hidden'
+
+These forms are grokked in a manner that is similar to
+`plone.directives.form`_, and support custom template associations. Please
+note, however:
+
+* When using ``dexterity.AddForm`` as a base, you must use the ``grok.name()``
+  directive to give the name of the add view. Usually, this is the same as
+  the name of the Factory Type Information object.
+* When using ``dexterity.EditForm`` as a base, you must use ``grok.context()``
+  and supply a Dexterity content type interface as an argument. This is to
+  allow proper re-use of types.
+
+.. _plone.directives.form: http://pypi.python.org/pypi/plone.directives.form

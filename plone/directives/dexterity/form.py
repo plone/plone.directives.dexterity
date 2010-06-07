@@ -34,14 +34,108 @@ from Products.Five.security import CheckerPrivateId
 
 TEMP_KEY = '__form_directive_values__'
 
+# Find out if we want to wrap forms
+from plone.directives.form.meta import DEFAULT_WRAP
+from plone.directives.form.form import wrap
+
 # Base classes
 
-class AddForm(add.DefaultAddForm):
+class GrokkedDexterityForm(object):
+    
+    # Emulate grokcore.view.View
+    
+    def __init__(self, context, request):
+        super(GrokkedDexterityForm, self).__init__(context, request)
+        
+        # Set the view __name__
+        self.__name__ = getattr(self, '__view_name__', None)
+        
+        # Set up the view.static resource directory reference
+        if getattr(self, 'module_info', None) is not None:
+            self.static = zope.component.queryAdapter(
+                self.request,
+                zope.interface.Interface,
+                name=self.module_info.package_dotted_name
+                )
+        else:
+            self.static = None
+    
+    def render(self):
+        # Render a grok-style template if we have one
+        if (
+            getattr(self, 'template') and
+            grokcore.view.interfaces.ITemplate.providedBy(self.template)
+        ):
+            return self._render_template()
+        else:
+            return super(GrokkedDexterityForm, self).render()
+    render.base_method = True
+    
+    @property
+    def response(self):
+        return self.request.response
+    
+    def _render_template(self):
+        return self.template.render(self)
+
+    def default_namespace(self):
+        namespace = {}
+        namespace['context'] = self.context
+        namespace['request'] = self.request
+        namespace['static'] = self.static
+        namespace['view'] = self
+        return namespace
+
+    def namespace(self):
+        return {}
+    
+    def url(self, obj=None, name=None, data=None):
+        """Return string for the URL based on the obj and name. The data
+        argument is used to form a CGI query string.
+        """
+        if isinstance(obj, basestring):
+            if name is not None:
+                raise TypeError(
+                    'url() takes either obj argument, obj, string arguments, '
+                    'or string argument')
+            name = obj
+            obj = None
+
+        if name is None and obj is None:
+            # create URL to view itself
+            obj = self
+        elif name is not None and obj is None:
+            # create URL to view on context
+            obj = self.context
+
+        if data is None:
+            data = {}
+        else:
+            if not isinstance(data, dict):
+                raise TypeError('url() data argument must be a dict.')
+
+        return grokcore.view.util.url(self.request, obj, name, data=data)
+
+    def redirect(self, url):
+        return self.request.response.redirect(url)
+    
+    # BBB: makes the form have the most important properties that were
+    # exposed by the wrapper view
+    
+    @property
+    def form_instance(self):
+        return self
+    
+    @property
+    def form(self):
+        return self.__class__
+
+class AddForm(GrokkedDexterityForm, add.DefaultAddForm):
     """Base class for grokked add forms
     """
     martian.baseclass()
 
-class EditForm(edit.DefaultEditForm):
+class EditForm(GrokkedDexterityForm, edit.DefaultEditForm):
     """Base class for grokked edit forms
     """
     martian.baseclass()
@@ -68,11 +162,27 @@ class AddFormGrokker(martian.ClassGrokker):
     martian.directive(grokcore.view.layer, default=IDefaultBrowserLayer)
     martian.directive(grokcore.component.name, default=None)
     martian.directive(grokcore.security.require, name='permission', default='cmf.AddPortalContent')
+    martian.directive(wrap, default=None)
     
-    def execute(self, form, config, layer, name, permission):
+    def grok(self, name, form, module_info, **kw):
+        # save the module info so that we can look for templates later
+        form.module_info = module_info
+        return super(AddFormGrokker, self).grok(name, form, module_info, **kw)
+    
+    def execute(self, form, config, layer, name, permission, wrap):
         
         if not name:
             raise GrokError(u"No factory name specified for add form. Use grok.name('my.factory').", form)
+        
+        templates = form.module_info.getAnnotation('grok.templates', None)
+        if templates is not None:
+            config.action(
+                discriminator=None,
+                callable=self.checkTemplates,
+                args=(templates, form.module_info, form)
+                )
+        
+        form.__view_name__ = name
         
         # Create a wrapper class that derives from the default add view
         # but sets the correct form
@@ -119,6 +229,21 @@ class AddFormGrokker(martian.ClassGrokker):
             )
         
         return True
+    
+    def checkTemplates(self, templates, module_info, factory):
+        
+        def has_render(factory):
+            render = getattr(factory, 'render', None)
+            base_method = getattr(render, 'base_method', False)
+            return render and not base_method
+        
+        def has_no_render(factory):
+            # Unlike the view grokker, we are happy with the base class
+            # version
+            return getattr(factory, 'render', None) is None
+        
+        templates.checkTemplates(module_info, factory, 'view',
+                                 has_render, has_no_render)
         
 class EditFormGrokker(martian.ClassGrokker):
     martian.component(EditForm)
@@ -127,24 +252,64 @@ class EditFormGrokker(martian.ClassGrokker):
     martian.directive(grokcore.view.layer, default=IDefaultBrowserLayer)
     martian.directive(grokcore.component.name, default='edit')
     martian.directive(grokcore.security.require, name='permission', default='cmf.ModifyPortalContent')
+    martian.directive(wrap, default=None)
     
-    def execute(self, form, config, context, layer, name, permission):
+    def grok(self, name, form, module_info, **kw):
+        # save the module info so that we can look for templates later
+        form.module_info = module_info
+        return super(EditFormGrokker, self).grok(name, form, module_info, **kw)
+    
+    def execute(self, form, config, context, layer, name, permission, wrap):
         
         # Only grok if the context is an interface. We demand this so that the
         # form is more re-usable in case of type customisation.
         if not isinstance(context, zope.interface.interface.InterfaceClass):
             return False
         
-        factory = layout.wrap_form(form)
-        factory.__name__ = name
+        templates = form.module_info.getAnnotation('grok.templates', None)
+        if templates is not None:
+            config.action(
+                discriminator=None,
+                callable=self.checkTemplates,
+                args=(templates, form.module_info, form)
+                )
         
-        page(config,
-             name=name,
-             permission=permission,
-             for_=context,
-             layer=layer,
-             class_=factory)
-
+        form.__view_name__ = name
+        
+        if wrap is None:
+            wrap = DEFAULT_WRAP
+        
+        # Only use the wrapper view if we are on Zope < 2.12
+        if wrap:
+            factory = layout.wrap_form(form)
+            factory.__view_name__ = name
+        else:
+            factory = form
+        
+        page(
+                config,
+                name=name,
+                permission=permission,
+                for_=context,
+                layer=layer,
+                class_=factory
+            )
+        
         return True
+    
+    def checkTemplates(self, templates, module_info, factory):
+        
+        def has_render(factory):
+            render = getattr(factory, 'render', None)
+            base_method = getattr(render, 'base_method', False)
+            return render and not base_method
+        
+        def has_no_render(factory):
+            # Unlike the view grokker, we are happy with the base class
+            # version
+            return getattr(factory, 'render', None) is None
+        
+        templates.checkTemplates(module_info, factory, 'view',
+                                 has_render, has_no_render)
 
 __all__ = ('AddForm', 'EditForm', 'DisplayForm', )

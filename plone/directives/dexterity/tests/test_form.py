@@ -21,6 +21,8 @@ from plone.dexterity.browser import add
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 from Products.CMFCore.interfaces import IFolderish
 
+from plone.directives.form.meta import DEFAULT_WRAP
+
 class TestContext(object):
     five.grok.implements(IFolderish)
 
@@ -134,10 +136,18 @@ class TestFormDirectives(MockTestCase):
         class EditForm(form.EditForm):
             five.grok.context(IDummyContent)
         
-        wrapped = self.create_dummy()
+        if DEFAULT_WRAP: # Plone < 4
         
-        wrap_form_mock = self.mocker.replace('plone.z3cform.layout.wrap_form')
-        self.expect(wrap_form_mock(EditForm)).result(wrapped)
+            wrapped = self.create_dummy()
+        
+            wrap_form_mock = self.mocker.replace('plone.z3cform.layout.wrap_form')
+            self.expect(wrap_form_mock(EditForm)).result(wrapped)
+            
+            factory = wrapped
+        
+        else: # Plone >= 4
+            
+            factory = EditForm
         
         page_mock = self.mocker.replace('Products.Five.browser.metaconfigure.page')
         self.expect(page_mock(mocker.ANY, 
@@ -145,7 +155,7 @@ class TestFormDirectives(MockTestCase):
                               permission='cmf.ModifyPortalContent',
                               for_=IDummyContent,
                               layer=IDefaultBrowserLayer,
-                              class_=wrapped))
+                              class_=factory))
         
         self.replay()
         
@@ -165,18 +175,26 @@ class TestFormDirectives(MockTestCase):
             five.grok.require('my.permission')
             five.grok.layer(ILayer)
         
-        wrapped = self.create_dummy()
+        if DEFAULT_WRAP: # Plone < 4
         
-        wrap_form_mock = self.mocker.replace('plone.z3cform.layout.wrap_form')
-        self.expect(wrap_form_mock(EditForm)).result(wrapped)
+            wrapped = self.create_dummy()
+            
+            wrap_form_mock = self.mocker.replace('plone.z3cform.layout.wrap_form')
+            self.expect(wrap_form_mock(EditForm)).result(wrapped)
+            
+            factory = wrapped
         
+        else: # Plone >= 4
+            
+            factory = EditForm
+            
         page_mock = self.mocker.replace('Products.Five.browser.metaconfigure.page')
         self.expect(page_mock(mocker.ANY, 
                               name='edith',
                               permission='my.permission',
                               for_=IDummyContent,
                               layer=ILayer,
-                              class_=wrapped))
+                              class_=factory))
         
         self.replay()
         
