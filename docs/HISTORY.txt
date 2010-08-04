@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.0b1
+------------------
+
+* Make sure custom add forms redirect to the correct place after creating
+  content. Fixes http://code.google.com/p/dexterity/issues/detail?id=136
+  [optilude]
+
 1.0a2 - 2009-11-17
 ------------------
 

@@ -134,6 +134,12 @@ class AddForm(GrokkedDexterityForm, add.DefaultAddForm):
     """Base class for grokked add forms
     """
     martian.baseclass()
+    
+    def render(self):
+        if self._finishedAdd:
+            self.request.response.redirect(self.nextURL())
+            return ""
+        return super(AddForm, self).render()
 
 class EditForm(GrokkedDexterityForm, edit.DefaultEditForm):
     """Base class for grokked edit forms
