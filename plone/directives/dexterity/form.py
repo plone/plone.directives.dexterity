@@ -140,7 +140,8 @@ class AddForm(GrokkedDexterityForm, add.DefaultAddForm):
             self.request.response.redirect(self.nextURL())
             return ""
         return super(AddForm, self).render()
-
+    render.base_method = True
+    
 class EditForm(GrokkedDexterityForm, edit.DefaultEditForm):
     """Base class for grokked edit forms
     """
