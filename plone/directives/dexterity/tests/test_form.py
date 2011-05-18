@@ -21,6 +21,18 @@ from plone.dexterity.browser import add
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 from Products.CMFCore.interfaces import IFolderish
 
+# Determine which methods to mock:
+try:
+    from AccessControl.security import protectClass, protectName
+    protectClass, protectName  # pyflakes
+except ImportError:
+    # BBB
+    protectClass_method = 'Products.Five.security.protectClass'
+    protectName_method = 'Products.Five.security.protectName'
+else:
+    protectClass_method = 'AccessControl.security.protectClass'
+    protectName_method = 'AccessControl.security.protectName'
+
 from plone.directives.form.meta import DEFAULT_WRAP
 
 
@@ -63,12 +75,10 @@ class TestFormDirectives(MockTestCase):
         def match_addview():
             return mocker.MATCH(lambda x: issubclass(x, add.DefaultAddView))
 
-        protectClass_mock = self.mocker.replace(
-            'Products.Five.security.protectClass')
+        protectClass_mock = self.mocker.replace(protectClass_method)
         self.expect(protectClass_mock(match_addview(), "cmf.AddPortalContent"))
 
-        protectName_mock = self.mocker.replace(
-            'Products.Five.security.protectName')
+        protectName_mock = self.mocker.replace(protectName_method)
         self.expect(protectName_mock(match_addview(), '__call__',
                                      "cmf.AddPortalContent"))
 
@@ -100,12 +110,10 @@ class TestFormDirectives(MockTestCase):
         def match_addview():
             return mocker.MATCH(lambda x: issubclass(x, add.DefaultAddView))
 
-        protectClass_mock = self.mocker.replace(
-            'Products.Five.security.protectClass')
+        protectClass_mock = self.mocker.replace(protectClass_method)
         self.expect(protectClass_mock(match_addview(), "my.permission"))
 
-        protectName_mock = self.mocker.replace(
-            'Products.Five.security.protectName')
+        protectName_mock = self.mocker.replace(protectName_method)
         self.expect(protectName_mock(match_addview(), '__call__',
                                      "my.permission"))
 

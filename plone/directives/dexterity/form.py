@@ -29,8 +29,14 @@ from Products.CMFCore.interfaces import IFolderish
 
 from Products.Five.browser.metaconfigure import page
 from Products.Five.metaclass import makeClass
-from Products.Five.security import protectClass, protectName
-from Products.Five.security import CheckerPrivateId
+
+try:
+    from AccessControl.security import protectClass, protectName
+    from AccessControl.security import CheckerPrivateId
+    protectClass, protectName, CheckerPrivateId  # pyflakes
+except ImportError:
+    from Products.Five.security import protectClass, protectName
+    from Products.Five.security import CheckerPrivateId
 
 TEMP_KEY = '__form_directive_values__'
 
