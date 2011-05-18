@@ -28,8 +28,14 @@ class TestContentDirectives(MockTestCase):
             meta_type = "ContentMT"
             add_permission(u"mock.AddPermission")
 
-        registerClass_mock = self.mocker.replace(
-            'Products.Five.fiveconfigure.registerClass')
+        try:
+            from OFS.metaconfigure import registerClass
+            registerClass_mock = self.mocker.replace(
+                'OFS.metaconfigure.registerClass')
+        except ImportError:
+            # BBB
+            registerClass_mock = self.mocker.replace(
+                'Products.Five.fiveconfigure.registerClass')
         self.expect(registerClass_mock(
             self.match_provides(IConfigurationContext),
             Content, "ContentMT", u"mock.AddPermission"))
@@ -46,8 +52,14 @@ class TestContentDirectives(MockTestCase):
         class Content(Item):
             meta_type = "ContentMT"
 
-        registerClass_mock = self.mocker.replace(
-            'Products.Five.fiveconfigure.registerClass')
+        try:
+            from OFS.metaconfigure import registerClass
+            registerClass_mock = self.mocker.replace(
+                'OFS.metaconfigure.registerClass')
+        except ImportError:
+            # BBB
+            registerClass_mock = self.mocker.replace(
+                'Products.Five.fiveconfigure.registerClass')
         self.expect(registerClass_mock(mocker.ANY, Content, mocker.ANY,
                                        mocker.ANY)).count(0)
 
