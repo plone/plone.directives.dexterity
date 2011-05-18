@@ -10,7 +10,11 @@ from zope.component.factory import Factory
 from plone.dexterity.content import DexterityContent
 
 from App.class_init import InitializeClass
-from Products.Five.fiveconfigure import registerClass
+try:
+    from OFS.metaconfigure import registerClass
+except ImportError:
+    # BBB
+    from Products.Five.fiveconfigure import registerClass
 
 
 class add_permission(martian.Directive):
