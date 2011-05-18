@@ -23,8 +23,10 @@ from Products.CMFCore.interfaces import IFolderish
 
 from plone.directives.form.meta import DEFAULT_WRAP
 
+
 class TestContext(object):
     five.grok.implements(IFolderish)
+
 
 class TestRequest(object):
 
@@ -34,11 +36,14 @@ class TestRequest(object):
     def __setitem__(self, name, value):
         pass
 
+
 class TestFormDirectives(MockTestCase):
 
     def setUp(self):
         super(TestFormDirectives, self).setUp()
-        self.mock_utility(Permission(u'cmf.AddPortalContent', u"Add portal content"), IPermission, u'cmf.AddPortalContent')
+        self.mock_utility(
+            Permission(u'cmf.AddPortalContent', u"Add portal content"),
+            IPermission, u'cmf.AddPortalContent')
         grok('plone.directives.dexterity.form')
 
     def test_addform_grokker_bails_without_factory(self):
@@ -58,13 +63,18 @@ class TestFormDirectives(MockTestCase):
         def match_addview():
             return mocker.MATCH(lambda x: issubclass(x, add.DefaultAddView))
 
-        protectClass_mock = self.mocker.replace('Products.Five.security.protectClass')
+        protectClass_mock = self.mocker.replace(
+            'Products.Five.security.protectClass')
         self.expect(protectClass_mock(match_addview(), "cmf.AddPortalContent"))
 
-        protectName_mock = self.mocker.replace('Products.Five.security.protectName')
-        self.expect(protectName_mock(match_addview(), '__call__', "cmf.AddPortalContent"))
+        protectName_mock = self.mocker.replace(
+            'Products.Five.security.protectName')
+        self.expect(protectName_mock(match_addview(), '__call__',
+                                     "cmf.AddPortalContent"))
 
-        self.expect(protectName_mock(match_addview(), self.match_type(basestring), 'zope2.Private')).count(1,None)
+        self.expect(protectName_mock(
+            match_addview(), self.match_type(basestring), 'zope2.Private')
+                    ).count(1, None)
 
         self.replay()
 
@@ -72,7 +82,8 @@ class TestFormDirectives(MockTestCase):
 
         # Find the adapter that was registered
 
-        view = getMultiAdapter((TestContext(), TestRequest(), DexterityFTI(u"my.type")), name=u"my.type")
+        view = getMultiAdapter((TestContext(), TestRequest(),
+                                DexterityFTI(u"my.type")), name=u"my.type")
         self.failUnless(isinstance(view, add.DefaultAddView))
         self.assertEquals(AddForm, view.form)
 
@@ -89,13 +100,18 @@ class TestFormDirectives(MockTestCase):
         def match_addview():
             return mocker.MATCH(lambda x: issubclass(x, add.DefaultAddView))
 
-        protectClass_mock = self.mocker.replace('Products.Five.security.protectClass')
+        protectClass_mock = self.mocker.replace(
+            'Products.Five.security.protectClass')
         self.expect(protectClass_mock(match_addview(), "my.permission"))
 
-        protectName_mock = self.mocker.replace('Products.Five.security.protectName')
-        self.expect(protectName_mock(match_addview(), '__call__', "my.permission"))
+        protectName_mock = self.mocker.replace(
+            'Products.Five.security.protectName')
+        self.expect(protectName_mock(match_addview(), '__call__',
+                                     "my.permission"))
 
-        self.expect(protectName_mock(match_addview(), self.match_type(basestring), 'zope2.Private')).count(1,None)
+        self.expect(protectName_mock(
+            match_addview(), self.match_type(basestring), 'zope2.Private')
+                    ).count(1, None)
 
         self.replay()
 
@@ -103,7 +119,8 @@ class TestFormDirectives(MockTestCase):
 
         # Find the adapter that was registered
 
-        view = getMultiAdapter((TestContext(), TestRequest(ITestLayer), DexterityFTI(u"my.type")), name=u"my.type")
+        view = getMultiAdapter((TestContext(), TestRequest(ITestLayer),
+                                DexterityFTI(u"my.type")), name=u"my.type")
         self.failUnless(isinstance(view, add.DefaultAddView))
         self.assertEquals(AddForm, view.form)
 
@@ -136,20 +153,22 @@ class TestFormDirectives(MockTestCase):
         class EditForm(form.EditForm):
             five.grok.context(IDummyContent)
 
-        if DEFAULT_WRAP: # Plone < 4
+        if DEFAULT_WRAP:  # Plone < 4
 
             wrapped = self.create_dummy()
 
-            wrap_form_mock = self.mocker.replace('plone.z3cform.layout.wrap_form')
+            wrap_form_mock = self.mocker.replace(
+                'plone.z3cform.layout.wrap_form')
             self.expect(wrap_form_mock(EditForm)).result(wrapped)
 
             factory = wrapped
 
-        else: # Plone >= 4
+        else:  # Plone >= 4
 
             factory = EditForm
 
-        page_mock = self.mocker.replace('Products.Five.browser.metaconfigure.page')
+        page_mock = self.mocker.replace(
+            'Products.Five.browser.metaconfigure.page')
         self.expect(page_mock(mocker.ANY,
                               name='edit',
                               permission='cmf.ModifyPortalContent',
@@ -175,20 +194,22 @@ class TestFormDirectives(MockTestCase):
             five.grok.require('my.permission')
             five.grok.layer(ILayer)
 
-        if DEFAULT_WRAP: # Plone < 4
+        if DEFAULT_WRAP:  # Plone < 4
 
             wrapped = self.create_dummy()
 
-            wrap_form_mock = self.mocker.replace('plone.z3cform.layout.wrap_form')
+            wrap_form_mock = self.mocker.replace(
+                'plone.z3cform.layout.wrap_form')
             self.expect(wrap_form_mock(EditForm)).result(wrapped)
 
             factory = wrapped
 
-        else: # Plone >= 4
+        else:  # Plone >= 4
 
             factory = EditForm
 
-        page_mock = self.mocker.replace('Products.Five.browser.metaconfigure.page')
+        page_mock = self.mocker.replace(
+            'Products.Five.browser.metaconfigure.page')
         self.expect(page_mock(mocker.ANY,
                               name='edith',
                               permission='my.permission',
@@ -199,6 +220,7 @@ class TestFormDirectives(MockTestCase):
         self.replay()
 
         self.assertEquals(True, grok_component('EditForm', EditForm))
+
 
 def test_suite():
     suite = unittest.TestSuite()

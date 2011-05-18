@@ -38,6 +38,7 @@ TEMP_KEY = '__form_directive_values__'
 from plone.directives.form.meta import DEFAULT_WRAP
 from plone.directives.form.form import wrap
 
+
 # Base classes
 
 class GrokkedDexterityForm(object):
@@ -130,6 +131,7 @@ class GrokkedDexterityForm(object):
     def form(self):
         return self.__class__
 
+
 class AddForm(GrokkedDexterityForm, add.DefaultAddForm):
     """Base class for grokked add forms
     """
@@ -142,10 +144,12 @@ class AddForm(GrokkedDexterityForm, add.DefaultAddForm):
         return super(AddForm, self).render()
     render.base_method = True
 
+
 class EditForm(GrokkedDexterityForm, edit.DefaultEditForm):
     """Base class for grokked edit forms
     """
     martian.baseclass()
+
 
 class DisplayForm(view.DefaultView, five.grok.View):
     """Base class for grokked display forms
@@ -163,12 +167,14 @@ class DisplayForm(view.DefaultView, five.grok.View):
         return zope.publisher.publish.mapply(self.render, (), self.request)
     render.base_method = True
 
+
 class AddFormGrokker(martian.ClassGrokker):
     martian.component(AddForm)
 
     martian.directive(grokcore.view.layer, default=IDefaultBrowserLayer)
     martian.directive(grokcore.component.name, default=None)
-    martian.directive(grokcore.security.require, name='permission', default='cmf.AddPortalContent')
+    martian.directive(grokcore.security.require, name='permission',
+                      default='cmf.AddPortalContent')
     martian.directive(wrap, default=None)
 
     def grok(self, name, form, module_info, **kw):
@@ -179,7 +185,8 @@ class AddFormGrokker(martian.ClassGrokker):
     def execute(self, form, config, layer, name, permission, wrap):
 
         if not name:
-            raise GrokError(u"No factory name specified for add form. Use grok.name('my.factory').", form)
+            raise GrokError(u"No factory name specified for add form. "
+                            u"Use grok.name('my.factory').", form)
 
         templates = form.module_info.getAnnotation('grok.templates', None)
         if templates is not None:
@@ -200,39 +207,42 @@ class AddFormGrokker(martian.ClassGrokker):
 
         # Protect the class
         config.action(
-            discriminator = ('five:protectClass', new_class),
-            callable = protectClass,
-            args = (new_class, permission)
+            discriminator=('five:protectClass', new_class),
+            callable=protectClass,
+            args=(new_class, permission)
             )
 
         # Protect the __call__ attribute
         config.action(
-            discriminator = ('five:protectName', new_class, '__call__'),
-            callable = protectName,
-            args = (new_class, '__call__', permission)
+            discriminator=('five:protectName', new_class, '__call__'),
+            callable=protectName,
+            args=(new_class, '__call__', permission)
             )
 
         # Make all other attributes private
         for attr in dir(new_class):
-            if not attr.startswith('_') and attr != '__call__' and ismethod(getattr(new_class, attr)):
+            if (not attr.startswith('_') and attr != '__call__'
+                and ismethod(getattr(new_class, attr))):
                 config.action(
-                    discriminator = ('five:protectName', new_class, attr),
-                    callable = protectName,
-                    args = (new_class, attr, CheckerPrivateId)
+                    discriminator=('five:protectName', new_class, attr),
+                    callable=protectName,
+                    args=(new_class, attr, CheckerPrivateId)
                     )
 
         # Initialise the class
         config.action(
-            discriminator = ('five:initialize:class', new_class),
-            callable = InitializeClass,
-            args = (new_class,)
+            discriminator=('five:initialize:class', new_class),
+            callable=InitializeClass,
+            args=(new_class,)
             )
 
         config.action(
-            discriminator = ('dexterity:addView', IFolderish, name, IBrowserRequest, layer, IDexterityFTI),
-            callable = handler,
-            args = ('registerAdapter',
-                    new_class, (IFolderish, layer, IDexterityFTI), zope.interface.Interface, name, config.info),
+            discriminator=('dexterity:addView', IFolderish, name,
+                           IBrowserRequest, layer, IDexterityFTI),
+            callable=handler,
+            args=('registerAdapter',
+                  new_class, (IFolderish, layer, IDexterityFTI),
+                  zope.interface.Interface, name, config.info),
             )
 
         return True
@@ -252,13 +262,15 @@ class AddFormGrokker(martian.ClassGrokker):
         templates.checkTemplates(module_info, factory, 'view',
                                  has_render, has_no_render)
 
+
 class EditFormGrokker(martian.ClassGrokker):
     martian.component(EditForm)
 
     martian.directive(grokcore.component.context, default=None)
     martian.directive(grokcore.view.layer, default=IDefaultBrowserLayer)
     martian.directive(grokcore.component.name, default='edit')
-    martian.directive(grokcore.security.require, name='permission', default='cmf.ModifyPortalContent')
+    martian.directive(grokcore.security.require, name='permission',
+                      default='cmf.ModifyPortalContent')
     martian.directive(wrap, default=None)
 
     def grok(self, name, form, module_info, **kw):

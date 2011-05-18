@@ -12,8 +12,10 @@ from grokcore.component.testing import grok, grok_component
 from plone.directives.dexterity.content import add_permission
 from plone.dexterity.content import Item
 
+
 class DummyWidget(object):
     pass
+
 
 class TestContentDirectives(MockTestCase):
 
@@ -26,11 +28,14 @@ class TestContentDirectives(MockTestCase):
             meta_type = "ContentMT"
             add_permission(u"mock.AddPermission")
 
-        registerClass_mock = self.mocker.replace('Products.Five.fiveconfigure.registerClass')
-        self.expect(registerClass_mock(self.match_provides(IConfigurationContext),
-                                        Content, "ContentMT", u"mock.AddPermission"))
+        registerClass_mock = self.mocker.replace(
+            'Products.Five.fiveconfigure.registerClass')
+        self.expect(registerClass_mock(
+            self.match_provides(IConfigurationContext),
+            Content, "ContentMT", u"mock.AddPermission"))
 
-        InitializeClass_mock = self.mocker.replace('App.class_init.InitializeClass')
+        InitializeClass_mock = self.mocker.replace(
+            'App.class_init.InitializeClass')
         self.expect(InitializeClass_mock(Content))
 
         self.replay()
@@ -41,10 +46,13 @@ class TestContentDirectives(MockTestCase):
         class Content(Item):
             meta_type = "ContentMT"
 
-        registerClass_mock = self.mocker.replace('Products.Five.fiveconfigure.registerClass')
-        self.expect(registerClass_mock(mocker.ANY, Content, mocker.ANY, mocker.ANY)).count(0)
+        registerClass_mock = self.mocker.replace(
+            'Products.Five.fiveconfigure.registerClass')
+        self.expect(registerClass_mock(mocker.ANY, Content, mocker.ANY,
+                                       mocker.ANY)).count(0)
 
-        InitializeClass_mock = self.mocker.replace('App.class_init.InitializeClass')
+        InitializeClass_mock = self.mocker.replace(
+            'App.class_init.InitializeClass')
         self.expect(InitializeClass_mock(Content))
 
         self.replay()
@@ -56,23 +64,26 @@ class TestContentDirectives(MockTestCase):
         class Content(Item):
             pass
 
-        InitializeClass_mock = self.mocker.replace('App.class_init.InitializeClass')
+        InitializeClass_mock = self.mocker.replace(
+            'App.class_init.InitializeClass')
         self.expect(InitializeClass_mock(Content))
 
         self.replay()
 
         grok_component('Content', Content)
 
-
     def test_name_registers_factory(self):
 
         class Content(Item):
             five.grok.name('my.type')
 
-        provideUtility_mock = self.mocker.replace('zope.component.provideUtility')
-        self.expect(provideUtility_mock(self.match_provides(IFactory), IFactory, 'my.type'))
+        provideUtility_mock = self.mocker.replace(
+            'zope.component.provideUtility')
+        self.expect(provideUtility_mock(self.match_provides(IFactory),
+                                        IFactory, 'my.type'))
 
-        InitializeClass_mock = self.mocker.replace('App.class_init.InitializeClass')
+        InitializeClass_mock = self.mocker.replace(
+            'App.class_init.InitializeClass')
         self.expect(InitializeClass_mock(Content))
 
         self.replay()
@@ -87,15 +98,19 @@ class TestContentDirectives(MockTestCase):
         factory_dummy = self.create_dummy()
         self.mock_utility(factory_dummy, IFactory, 'my.type')
 
-        provideUtility_mock = self.mocker.replace('zope.component.provideUtility')
-        self.expect(provideUtility_mock(mocker.ANY, IFactory, 'my.type')).count(0)
+        provideUtility_mock = self.mocker.replace(
+            'zope.component.provideUtility')
+        self.expect(provideUtility_mock(mocker.ANY, IFactory, 'my.type')
+                    ).count(0)
 
-        InitializeClass_mock = self.mocker.replace('App.class_init.InitializeClass')
+        InitializeClass_mock = self.mocker.replace(
+            'App.class_init.InitializeClass')
         self.expect(InitializeClass_mock(Content))
 
         self.replay()
 
         grok_component('Content', Content)
+
 
 def test_suite():
     suite = unittest.TestSuite()

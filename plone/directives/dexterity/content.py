@@ -12,6 +12,7 @@ from plone.dexterity.content import DexterityContent
 from App.class_init import InitializeClass
 from Products.Five.fiveconfigure import registerClass
 
+
 class add_permission(martian.Directive):
     """Directive used to specify the add permission of an object
     """
@@ -22,6 +23,7 @@ class add_permission(martian.Directive):
 
     def factory(self, permission):
         return permission
+
 
 class ContentGrokker(martian.ClassGrokker):
     martian.component(DexterityContent)
@@ -59,6 +61,7 @@ class ContentGrokker(martian.ClassGrokker):
             )
 
         return True
+
 
 def register_factory(class_, name):
 
