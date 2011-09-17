@@ -28,7 +28,6 @@ from App.class_init import InitializeClass
 from Products.CMFCore.interfaces import IFolderish
 
 from Products.Five.browser.metaconfigure import page
-from Products.Five.metaclass import makeClass
 
 try:
     from AccessControl.security import protectClass, protectName
@@ -143,6 +142,16 @@ class AddForm(GrokkedDexterityForm, add.DefaultAddForm):
     """
     martian.baseclass()
 
+    def __init__(self, context, request, ti=None):
+        super(GrokkedDexterityForm, self).__init__(context, request)
+        if ti is not None:
+            self.ti = ti
+            self.portal_type = ti.getId()
+    
+    def __of__(self, context):
+        # compatibility with CMFCore which tries to wrap the add view
+        return self
+
     def render(self):
         if self._finishedAdd:
             self.request.response.redirect(self.nextURL())
@@ -204,12 +213,16 @@ class AddFormGrokker(martian.ClassGrokker):
 
         form.__view_name__ = name
 
-        # Create a wrapper class that derives from the default add view
-        # but sets the correct form
+        # Unlike the other forms, we default to wrapping for backwards-
+        # compatibility with custom templates that assume wrapping.
+        if wrap is None:
+            wrap = True
 
-        cdict = {'__name__': name, 'form': form}
-        bases = (add.DefaultAddView,)
-        new_class = makeClass('%sWrapper' % form.__name__, bases, cdict)
+        if wrap:
+            new_class = layout.wrap_form(form, __wrapper_class=add.DefaultAddView)
+            new_class.__view_name__ = new_class.__name__ = name
+        else:
+            new_class = form
 
         # Protect the class
         config.action(
