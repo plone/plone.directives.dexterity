@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.0.1dev'
+version = '1.0.1'
 
 setup(name='plone.directives.dexterity',
       version=version,
@@ -29,7 +29,7 @@ setup(name='plone.directives.dexterity',
       install_requires=[
           'setuptools',
           'five.grok',
-          'plone.dexterity',
+          'plone.dexterity>=1.0.1',
           'plone.directives.form>=1.0b3',
           'zope.deferredimport',
           # -*- Extra requirements: -*-
