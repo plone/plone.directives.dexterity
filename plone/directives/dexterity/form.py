@@ -143,7 +143,7 @@ class AddForm(GrokkedDexterityForm, add.DefaultAddForm):
     martian.baseclass()
 
     def __init__(self, context, request, ti=None):
-        super(GrokkedDexterityForm, self).__init__(context, request)
+        super(AddForm, self).__init__(context, request)
         if ti is not None:
             self.ti = ti
             self.portal_type = ti.getId()
